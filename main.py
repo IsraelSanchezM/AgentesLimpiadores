@@ -11,29 +11,37 @@ Roberto Valdez  Jasso A01746863
 10/11/2021
 """
 
-#Librerías ausar
+#Librerías a usar
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.modules import ChartModule
 from LimpiadorModel import *
 from mesa.visualization.ModularVisualization import ModularServer
 
-def agent_portrayal(agent):
-    """Función que define como se visualizarán los agentes en pantalla"""
+def agentPortrayal(agent):
+    """
+    Función que define como se visualizarán los agentes en pantalla
+    Parámetros: 
+    agent - agente(s) que se visualizarán
+    Retorno:
+    portrayal - diccionario con las especificaciones de como se visualizarán los agentes
+    """
     portrayal = {
-        "Shape": "circle",
         "Filled": "true",
     }
-    if(agent.state == 0):
+    if(type(agent) is AgenteLimpiador):
+        portrayal["Shape"] = "circle"
         portrayal["Color"] = "red"
         portrayal["r"] = 0.5
         portrayal["Layer"] = 1
     else:
+        portrayal["Shape"] = "rect"
         portrayal["Color"] = "green"
-        portrayal["r"] = 1
+        portrayal["w"] = 1
+        portrayal["h"] = 1
         portrayal["Layer"] = 0
     return portrayal
 
-grid = CanvasGrid(agent_portrayal, 10, 10, 500, 500)  #Se crea el grid con las dimensiones especificadas
+grid = CanvasGrid(agentPortrayal, 50, 50, 500, 500)  #Se crea el grid con las dimensiones especificadas
 #Se crean las gráficas correspondientes a lo recolectado por el Datacollector
 movimientos = ChartModule(
     [{
@@ -42,7 +50,7 @@ movimientos = ChartModule(
     }],
     data_collector_name = 'datacollector'
 )
-celdas_limpias = ChartModule(
+celdasLimpias = ChartModule(
     [{
         "Label": "% Celdas Limpias",
         "Color": "Blue"
@@ -59,11 +67,11 @@ tiempo = ChartModule(
 #Se crea el servidor
 server = ModularServer(
     LimpiadorModel, 
-    [grid, tiempo, celdas_limpias, movimientos],
+    [grid, tiempo, celdasLimpias, movimientos],
     "Modelo de robots limpiadores",
-    {"N": 15, "width": 10, "height": 10, "percent": 70, "time": 50} 
+    {"N": 150, "width": 50, "height": 50, "percent": 70, "time": 450} 
 )
 
 #Se lanza el servidor
-server.port = 8081
+server.port = 8082
 server.launch()
