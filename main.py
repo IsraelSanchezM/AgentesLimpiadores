@@ -21,11 +21,16 @@ def agent_portrayal(agent):
     """Función que define como se visualizarán los agentes en pantalla"""
     portrayal = {
         "Shape": "circle",
-        "Color": "red",
         "Filled": "true",
-        "r": 0.5,
-        "Layer": 0
     }
+    if(agent.state == 0):
+        portrayal["Color"] = "red"
+        portrayal["r"] = 0.5
+        portrayal["Layer"] = 1
+    else:
+        portrayal["Color"] = "green"
+        portrayal["r"] = 1
+        portrayal["Layer"] = 0
     return portrayal
 
 grid = CanvasGrid(agent_portrayal, 10, 10, 500, 500)  #Se crea el grid con las dimensiones especificadas
@@ -56,7 +61,7 @@ server = ModularServer(
     LimpiadorModel, 
     [grid, tiempo, celdas_limpias, movimientos],
     "Modelo de robots limpiadores",
-    {"N": 15, "width": 10, "height": 10, "percent": 50, "time": 170} 
+    {"N": 15, "width": 10, "height": 10, "percent": 70, "time": 50} 
 )
 
 #Se lanza el servidor
