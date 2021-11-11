@@ -52,7 +52,7 @@ class LimpiadorModel(Model):
 
         #Se crean los agentes
         for i in range(self.num_agents):
-            limpiador = AgenteLimpiador("Limpiador " + str(i), self)
+            limpiador = AgenteLimpiador("Limpiador " + str(i), self, 0)
             self.schedule.add(limpiador)
 
             #Agregar a todos los agentes en la celda[1][1]
@@ -68,6 +68,10 @@ class LimpiadorModel(Model):
             if(temp not in self.dirty_cells):
                 #Si no existen las coordenadas en el arreglo de celdas sucias se agregan
                 self.dirty_cells.append(temp)
+                #Se crea un agente de tipo suciedad, se agrega al schedule y al tablero
+                dirt = AgenteLimpiador(dirty, self, 1)
+                self.schedule.add(dirt)
+                self.grid.place_agent(dirt, temp)
                 dirty -= 1
 
         self.datacollector = DataCollector(
@@ -84,7 +88,8 @@ class LimpiadorModel(Model):
             self.schedule.step()
         else:
             #De lo contrario se acaba la simulación
-            self.running = False
+            self.datacollector.collect(self)
+            self.running = False            
             print("Tiempo alcanzado: " + str(self.schedule.time))
             print("Celdas faltantes: " + str(self.dirty_cells))
             print("Porcentaje limpiado: " + str(calc_celdas_limpias(self)))
@@ -92,10 +97,11 @@ class LimpiadorModel(Model):
 
 class AgenteLimpiador(Agent):
     """Agente que limpiará la celda"""
-    def __init__(self, unique_id, model):
+    def __init__(self, unique_id, model, state):
         super().__init__(unique_id, model)
         self.celdas_limpiadas = 0
         self.movimientos = 0
+        self.state = state  #0 -> limpiador; 1 -> suciedad; 2 -> limpio
     
     def aspirar(self, cell):
         """Aspriar celda actual"""
@@ -119,9 +125,16 @@ class AgenteLimpiador(Agent):
 
     def step(self):
         """Acciones que realizan los agentes en cada paso"""
-        if(self.pos in self.model.dirty_cells):
+        #Se actualiza el tablero
+        if(self.pos not in self.model.dirty_cells and self.state == 1):
+            #Si el agente es suciedad y su celda ya fue limpiada se "limpia" del tablero
+            self.model.grid.remove_agent(self)
+            self.state = 2
+
+        if(self.pos in self.model.dirty_cells and self.state == 0):
             #Si la celda está sucia se aspira
             self.aspirar(self.pos)
         else:
             #De lo contrario el agente se mueve
-            self.move()
+            if(self.state == 0):
+                self.move()
